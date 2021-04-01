@@ -1,2 +1,1 @@
-# parkfield_lfe_cnn
-# parkfield_lfe_cnn
+# A CNN to detect LFEs in Parkfield
