@@ -21,6 +21,7 @@ import glob
 from os.path import join, basename
 import os
 import csv
+from multiprocessing.pool import ThreadPool
 
 
 def simple_detrend(data):
@@ -89,9 +90,10 @@ for sta_cnt, sta_str in enumerate(station_list):
         os.makedirs(sta_csv_dir)
 
     # Directory to put all those beautiful figures
-    sta_fig_dir = join(sta_out_dir, 'figures')
-    if not os.path.exists(sta_fig_dir):
-        os.makedirs(sta_fig_dir)
+    if plots:
+        sta_fig_dir = join(sta_out_dir, 'figures')
+        if not os.path.exists(sta_fig_dir):
+            os.makedirs(sta_fig_dir)
 
     # loop over all station time-period datafiles - ussually days
     for tchunk_cnt, tchunk_str in enumerate(tchunk_list):
@@ -210,16 +212,9 @@ for sta_cnt, sta_str in enumerate(station_list):
                         ax[3].axvline(spk[0][peak], color='b')
                     ax[3].set_ylim((0, 1))
                     plt.savefig(f"Detection_{peak_time}")
+                    plt.close()
 
         # Code runtime
-        codestop = datetime.datetime.now()
+        codestop = dt.datetime.now()
         runtime = (codestop - codestart).total_seconds() / 60
         print(f"Code ran in {runtime} minutes")
-
-        dects = np.asarray(sdects)
-        detect_file = join(out_dir, f'picks_{sta_str}-{str(tchunk_str)}.pkl'}
-        with open(file, "wb") as fp:   #Pickling
-            pickle.dump(dects, fp)
-        file = 'max_picks_'+sta+'-'+str(day)+'.pkl'
-        with open(file, "wb") as fp:   #Pickling
-            pickle.dump(maxvals, fp)
