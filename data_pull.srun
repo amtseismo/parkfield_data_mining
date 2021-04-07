@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --partition=amt       ### Partition (like a queue in PBS)
 #SBATCH --account=amt         ### Who to bill
-#SBATCH --job-name=cas_CN         ### Job Name
-#SBATCH --output=cas_CN.out       ### File in which to store job output
-#SBATCH --error=cascadia_data_CN.err        ### File in which to store job error messages
+#SBATCH --job-name=pkd         ### Job Name
+#SBATCH --output=pkd.out       ### File in which to store job output
+#SBATCH --error=pkd.err        ### File in which to store job error messages
 #SBATCH --time=7-00:00:00       ### Wall clock time limit in Days-HH:MM:SS
 #SBATCH --nodes=1               ### Number of nodes needed for the job
 #SBATCH --ntasks-per-node=1     ### Number of tasks to be launched per Node
