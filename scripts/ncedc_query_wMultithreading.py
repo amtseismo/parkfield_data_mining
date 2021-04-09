@@ -7,6 +7,7 @@ Script to make query files for the ncedc in parallel
 @author: amt, BGD
 """
 import os
+import tempfile
 from datetime import datetime, timedelta
 from obspy.core import UTCDateTime
 import subprocess
@@ -73,12 +74,14 @@ def get_day(date):
             ## BK CMB -- BHZ 2010-03-25T00:00:00 2010-04-01T00:00:00
             tmp = f'{net_str} {sta_str} * {comp_str} {date.isoformat()} {next_date.isoformat()}\n'
             print(tmp)
-            f = open('waveform.request', "w")
-            f.write(tmp)
-            f.close()
-            # curl --data-binary @waveform.request -o BK.miniseed http://service.ncedc.org/fdsnws/dataselect/1/query
-            command=f"curl --data-binary @waveform.request -o {file_path} http://service.ncedc.org/fdsnws/dataselect/1/query"
-            subprocess.call(command, shell=True)
+            scriptFile = tempfile.NamedTemporaryFile(delete=True)
+            with open(scriptFile.name, 'w') as f:
+                f.write(tmp)
+                f.close()
+                # curl --data-binary @waveform.request -o BK.miniseed http://service.ncedc.org/fdsnws/dataselect/1/query
+                command=f"curl --data-binary @{f.name} -o {file_path} http://service.ncedc.org/fdsnws/dataselect/1/query"
+                print(command)
+                subprocess.call(command, shell=True)
 
 with ThreadPool(n_processor) as p:
     p.map(get_day, date_list)
