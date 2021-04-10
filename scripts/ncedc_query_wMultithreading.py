@@ -28,20 +28,22 @@ logger.addHandler(fh)
 # smoke 'em if you got 'em
 n_processor = multiprocessing.cpu_count()
 
+# --------------------------------------------------------------------------- #
+# Search and download parameters to change
 out_dir = "../data"
 client_list = ['NCEDC']
-start_time = UTCDateTime("2018-12-21")
+start_time = UTCDateTime("2018-01-01")
 end_time = UTCDateTime("2019-01-01")
 center_lon = -120.374
 center_lat = 35.815
 sta_radius = 1
-
-
-station_list = {}
 cl = client_list[0]
 net_str = "BP,BK,NC"  # "*"
-sta_wcard = "*"  #GHIB"
+sta_wcard = "*"
 chan_wcard = "BH*,HH*,DP*,LH*"
+# --------------------------------------------------------------------------- #
+
+# Get station channel inventory
 inventory = Client(cl).get_stations(network=net_str, station=sta_wcard,
                                     channel=chan_wcard,
                                     latitude=center_lat, longitude=center_lon,
@@ -64,10 +66,11 @@ for net in inventory:
             sta_comp_list[sta.code] = list(set(comp_list))
     net_sta_comp_list[net.code] = sta_comp_list
 
+ # Write to list
 with open('net_sta_comp_list.json', 'w') as fp:
     json.dump(net_sta_comp_list, fp)
 
-# Request
+# Get list of dates to Request to batch out
 date_list = []
 date = start_time._get_datetime()
 while date + timedelta(days=1) < end_time._get_datetime():
@@ -78,6 +81,9 @@ while date + timedelta(days=1) < end_time._get_datetime():
 
 
 def get_day(date):
+    """
+    Function which downloads a days of data for all station channels
+    """
     next_date = date + timedelta(days=1)
     date_str = date.isoformat().split('T')[0]
     doy = date.timetuple().tm_yday
@@ -104,6 +110,6 @@ def get_day(date):
                     subprocess.call(cmd, shell=True)
 
 
-
+# Batch it out in embarassingly parallel fashion - 1 day per cpu
 with ThreadPool(n_processor) as p:
     p.map(get_day, date_list)
