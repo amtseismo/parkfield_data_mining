@@ -93,7 +93,7 @@ def get_day(date):
                 # Filename and path of datafile to write
                 file_name = f"{date_str}.{net_str}.{sta_str}.{comp_str}.ms"
                 file_path = os.path.join(out_dir, f"{sta_str}", file_name)
-                logger.info(f"\n\n ** Trying: {file_name} **")
+                logger.info(f"\n ** Trying: {file_name} **")
 
                 # Check if file exists:
                 if os.path.isfile(file_path):
