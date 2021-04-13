@@ -30,7 +30,7 @@ n_processor = multiprocessing.cpu_count()
 
 # --------------------------------------------------------------------------- #
 # Search and download parameters to change
-out_dir = "../data"
+out_dir = "/projects/amt/shared/parkfield/data"
 client_list = ['NCEDC']
 start_time = UTCDateTime("2018-01-01")
 end_time = UTCDateTime("2019-01-01")
@@ -92,24 +92,29 @@ def get_day(date):
             for comp_str in comp_list:
                 # Filename and path of datafile to write
                 file_name = f"{date_str}.{net_str}.{sta_str}.{comp_str}.ms"
-                file_path = os.path.join(f"../data/{sta_str}", file_name)
+                file_path = os.path.join(out_dir, f"{sta_str}", file_name)
                 logger.info(f"\n\n ** Trying: {file_name} **")
 
-                # Query request
-                tmp = f'{net_str} {sta_str} * {comp_str} {date.isoformat()} {next_date.isoformat()}\n'
-                logger.info(f"Query cmd: {tmp}")
-                scriptFile = tempfile.NamedTemporaryFile(delete=True)
-                http_str = "http://service.ncedc.org/fdsnws/dataselect/1/query"
-                with open(scriptFile.name, 'w') as f:
-                    f.write(tmp)
-                    f.close()
-                    # curl --data-binary @waveform.request -o
-                    # BK.miniseed http://service.ncedc.org/fdsnws/dataselect/1/query
-                    cmd = f"curl --data-binary @{f.name} -o {file_path} {http_str}"
-                    logger.info(f"curl call: {cmd}")
-                    subprocess.call(cmd, shell=True)
+                # Check if file exists:
+                if os.path.isfile(file_path):
+                    logger.info(f"File exists, next please...")
+                    continue
+                else:
+                    # Query request
+                    tmp = f'{net_str} {sta_str} * {comp_str} {date.isoformat()} {next_date.isoformat()}\n'
+                    logger.info(f"Query cmd: {tmp}")
+                    scriptFile = tempfile.NamedTemporaryFile(delete=True)
+                    http_str = "http://service.ncedc.org/fdsnws/dataselect/1/query"
+                    with open(scriptFile.name, 'w') as f:
+                        f.write(tmp)
+                        f.close()
+                        # curl --data-binary @waveform.request -o
+                        # BK.miniseed http://service.ncedc.org/fdsnws/dataselect/1/query
+                        cmd = f"curl --data-binary @{f.name} -o {file_path} {http_str}"
+                        logger.info(f"curl call: {cmd}")
+                        subprocess.call(cmd, shell=True)
 
 
 # Batch it out in embarassingly parallel fashion - 1 day per cpu
-with ThreadPool(n_processor) as p:
+with ThreadPool(max(n_processor, len(date_list))) as p:
     p.map(get_day, date_list)
